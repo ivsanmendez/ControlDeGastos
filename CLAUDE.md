@@ -18,6 +18,7 @@ Files use `NN_name.md` numbering — lower number = higher priority:
 3. `03_architecture.md` — repo layout and service diagram
 4. `04_activecontext.md` — current phase, decisions, next steps
 5. `05_progress.md` — what works, what's left, known issues
+6. `06_kanban.md` — Kanban board state and GitHub Project link
 
 Subdirectories for growing documentation:
 - `decisions/` — Architecture Decision Records
@@ -91,6 +92,46 @@ mise exec -- npm --prefix web run build
 Container-first development. PostgreSQL runs in Docker always. The Go API has a multi-stage Dockerfile (builder + minimal alpine runtime).
 
 Environment variable `DATABASE_URL` connects the API to PostgreSQL.
+
+## Kanban Workflow
+
+Project follows Kanban methodology. Board: https://github.com/users/ivsanmendez/projects/2
+
+**Columns**: Backlog → Todo → In Progress → Review → Done
+
+Work items are GitHub issues. When starting work:
+1. Move the issue to "In Progress" on the board
+2. Create a feature branch from `main`
+3. When done, move to "Review" and open a PR
+4. After merge, issue moves to "Done"
+
+Update `memory-bank/06_kanban.md` after board state changes.
+
+**Labels**: `backend`, `frontend`, `infrastructure`, `domain`, `agentic`
+
+## Commit Convention
+
+All commits **must** use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): short description
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build`
+
+**Scopes**: `api`, `domain`, `web`, `infra`, `agent`, `memory-bank`
+
+**Examples**:
+```
+feat(api): add expense CRUD handlers
+fix(domain): validate negative amounts
+docs(memory-bank): update architecture diagram
+chore(infra): add database migration task to mise
+ci: add lint step for conventional commits
+test(domain): add service unit tests with fakes
+```
+
+Breaking changes use `!` after scope: `feat(api)!: change expense response format`
 
 ## CI/CD
 

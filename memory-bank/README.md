@@ -10,6 +10,7 @@ Read files in numbered order. Lower numbers = higher priority for context loadin
 | `03_architecture.md` | Repo layout, service diagram, data flow |
 | `04_activecontext.md` | Current phase, recent decisions, next steps |
 | `05_progress.md` | What works, what's left, known issues |
+| `06_kanban.md` | Kanban board state and GitHub Project link |
 
 ## Subdirectories
 | Directory | Purpose |
