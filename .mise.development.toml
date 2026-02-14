@@ -1,0 +1,4 @@
+[env]
+DATABASE_URL = "postgres://postgres:postgres@localhost:5432/controldegastos?sslmode=disable"
+LOG_LEVEL = "debug"
+VITE_API_URL = "http://localhost:8080"

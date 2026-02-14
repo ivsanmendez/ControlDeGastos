@@ -1,0 +1,35 @@
+[tools]
+go = "1.23"
+node = "22"
+
+[env]
+PORT = "8080"
+APP_NAME = "ControlDeGastos"
+
+[tasks.build]
+description = "Build the Go API binary"
+run = "go build -o bin/api ./cmd/api"
+
+[tasks."dev:api"]
+description = "Run the Go API with hot reload (requires air)"
+run = "go run ./cmd/api"
+
+[tasks."dev:web"]
+description = "Run the Vite dev server"
+run = "npm --prefix web run dev"
+
+[tasks.test]
+description = "Run all Go tests"
+run = "go test ./..."
+
+[tasks."test:web"]
+description = "Run frontend tests"
+run = "npm --prefix web run test"
+
+[tasks.lint]
+description = "Lint Go code"
+run = "go vet ./..."
+
+[tasks."lint:web"]
+description = "Lint frontend code"
+run = "npm --prefix web run lint"
