@@ -27,5 +27,4 @@
 - AI agent adapter (future)
 
 ## Known Issues
-- PostgreSQL adapter methods are stubs (return nil/ErrNotFound)
-- No database migrations yet
+_(none)_

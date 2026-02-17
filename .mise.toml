@@ -33,3 +33,7 @@ run = "go vet ./..."
 [tasks."lint:web"]
 description = "Lint frontend code"
 run = "npm --prefix web run lint"
+
+[tasks.migrate]
+description = "Run database migrations (requires DATABASE_URL)"
+run = "go run github.com/pressly/goose/v3/cmd/goose -dir db/migrations postgres $DATABASE_URL up"

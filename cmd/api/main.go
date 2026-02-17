@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ivsanmendez/ControlDeGastos/db/migrations"
 	"github.com/ivsanmendez/ControlDeGastos/internal/adapter/eventbus"
 	"github.com/ivsanmendez/ControlDeGastos/internal/adapter/httpapi"
 	"github.com/ivsanmendez/ControlDeGastos/internal/adapter/postgres"
@@ -20,6 +21,10 @@ func main() {
 		log.Fatalf("database: %v", err)
 	}
 	defer db.Close()
+
+	if err := migrations.Run(db); err != nil {
+		log.Fatalf("migrations: %v", err)
+	}
 
 	repo := postgres.NewExpenseRepo(db)
 	bus := eventbus.New()

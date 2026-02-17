@@ -24,8 +24,6 @@
 ## Current Board State
 
 ### Backlog
-- #1 Implement PostgreSQL expense repository [`backend`, `domain`]
-- #2 Set up database migrations [`backend`, `infrastructure`]
 - #3 Add domain unit tests with fake adapters [`backend`, `domain`]
 - #4 Build React expense management UI [`frontend`]
 - #5 Design and implement authentication [`backend`, `frontend`]
@@ -42,4 +40,5 @@ _(empty)_
 _(empty)_
 
 ### Done
-_(empty)_
+- #2 Set up database migrations [`backend`, `infrastructure`]
+- #1 Implement PostgreSQL expense repository [`backend`, `domain`]
