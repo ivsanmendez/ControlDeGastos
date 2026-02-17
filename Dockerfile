@@ -1,7 +1,18 @@
 # syntax=docker/dockerfile:1
 
-# --- Build stage ---
-FROM golang:1.23-alpine AS builder
+# --- Build React frontend ---
+FROM node:22-alpine AS web-builder
+
+WORKDIR /web
+
+COPY web/package*.json ./
+RUN npm ci
+
+COPY web/ ./
+RUN npm run build
+
+# --- Build Go API ---
+FROM docker.io/library/golang:1.23-alpine AS api-builder
 
 WORKDIR /app
 
@@ -17,7 +28,13 @@ FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /api /api
+# Copy Go API binary
+COPY --from=api-builder /api /api
+
+# Copy React build
+COPY --from=web-builder /web/dist /web/dist
+
+ENV STATIC_DIR=/web/dist
 
 EXPOSE 8080
 
