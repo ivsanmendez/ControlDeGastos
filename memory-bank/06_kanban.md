@@ -42,3 +42,4 @@ _(empty)_
 ### Done
 - #2 Set up database migrations [`backend`, `infrastructure`]
 - #1 Implement PostgreSQL expense repository [`backend`, `domain`]
+- #3 Add domain unit tests with fake adapters [`backend`, `domain`]
