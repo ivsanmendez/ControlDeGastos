@@ -61,7 +61,7 @@ Generate a strong password: `openssl rand -hex 24`
 ### 2. Deploy
 
 ```bash
-./deploy-alt-ports.sh deploy
+./deploy.sh deploy
 ```
 
 ### 3. Verify
@@ -80,11 +80,11 @@ podman logs controldegastos-cloudflared
 ## Managing the Application
 
 ```bash
-./deploy-alt-ports.sh deploy    # Build + start everything
-./deploy-alt-ports.sh cleanup   # Stop and remove all containers
-./deploy-alt-ports.sh restart   # Restart the pod
-./deploy-alt-ports.sh status    # Show container status
-./deploy-alt-ports.sh logs      # Follow API logs
+./deploy.sh deploy    # Build + start everything
+./deploy.sh cleanup   # Stop and remove all containers
+./deploy.sh restart   # Restart the pod
+./deploy.sh status    # Show container status
+./deploy.sh logs      # Follow API logs
 ```
 
 Direct Podman commands:
@@ -150,4 +150,4 @@ grep DATABASE_URL .env.production
 The Go API serves `index.html` for all non-API routes. If broken:
 1. Verify React build: `podman exec controldegastos-api ls /web/dist/`
 2. Verify `STATIC_DIR=/web/dist` is set
-3. Rebuild: `./deploy-alt-ports.sh deploy`
+3. Rebuild: `./deploy.sh deploy`

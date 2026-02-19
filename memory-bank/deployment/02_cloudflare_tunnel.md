@@ -42,7 +42,7 @@ TUNNEL_TOKEN=<your_token_from_cloudflare_dashboard>
 ### 3. Deploy
 
 ```bash
-./deploy-alt-ports.sh deploy
+./deploy.sh deploy
 ```
 
 The `controldegastos-cloudflared` container connects automatically using `TUNNEL_TOKEN` from the env file.

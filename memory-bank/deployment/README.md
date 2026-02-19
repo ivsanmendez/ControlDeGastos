@@ -16,7 +16,7 @@ Production deployment guides and operational procedures.
 nano .env.production   # set DB password + TUNNEL_TOKEN
 
 # 2. Deploy
-./deploy-alt-ports.sh deploy
+./deploy.sh deploy
 
 # 3. Verify
 curl https://cdg.meyis.work/health

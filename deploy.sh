@@ -77,7 +77,7 @@ deploy() {
     echo "  View tunnel logs: podman logs -f controldegastos-cloudflared"
     echo "  Stop:             podman pod stop controldegastos"
     echo "  Start:            podman pod start controldegastos"
-    echo "  Remove:           ./deploy-alt-ports.sh cleanup"
+    echo "  Remove:           ./deploy.sh cleanup"
 }
 
 # Parse command

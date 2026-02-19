@@ -15,7 +15,7 @@
 - CLAUDE.md
 - Production deployment via Podman pod + Cloudflare Named Tunnel
   - Public URL: https://cdg.meyis.work
-  - Script: `./deploy-alt-ports.sh`
+  - Script: `./deploy.sh`
   - Pod: API + PostgreSQL + cloudflared containers
 
 ## What's Left to Build
