@@ -23,7 +23,7 @@ Browser → https://cdg.meyis.work
 ### 1. Create Named Tunnel in Cloudflare Dashboard
 
 1. Go to [one.dash.cloudflare.com](https://one.dash.cloudflare.com) → **Networks → Tunnels**
-2. **Create a tunnel** → Cloudflared → name it (e.g., `controldegastos`)
+2. **Create a tunnel** → Cloudflared → name it (e.g., `controldecontabilidad`)
 3. On the connector screen, copy the **tunnel token**
 4. Add a **Public Hostname**:
    - Subdomain: `cdg`
@@ -45,13 +45,13 @@ TUNNEL_TOKEN=<your_token_from_cloudflare_dashboard>
 ./deploy.sh deploy
 ```
 
-The `controldegastos-cloudflared` container connects automatically using `TUNNEL_TOKEN` from the env file.
+The `controldecontabilidad-cloudflared` container connects automatically using `TUNNEL_TOKEN` from the env file.
 
 ## Verifying the Tunnel
 
 ```bash
 # Check tunnel connection
-podman logs controldegastos-cloudflared
+podman logs controldecontabilidad-cloudflared
 # Look for: "Connection established" or "Registered tunnel connection"
 
 # Test public URL

@@ -1,5 +1,5 @@
 #!/bin/bash
-# ControlDeGastos - Cloudflare Named Tunnel Deployment
+# ControlDeContabilidad - Cloudflare Named Tunnel Deployment
 # Public URL: https://cdg.meyis.work
 # Requires TUNNEL_TOKEN in .env.production
 
@@ -7,7 +7,7 @@ set -e
 
 PUBLIC_URL="https://cdg.meyis.work"
 
-echo "🚀 ControlDeGastos Deployment (Cloudflare Tunnel)"
+echo "🚀 ControlDeContabilidad Deployment (Cloudflare Tunnel)"
 echo "   Public: $PUBLIC_URL"
 echo
 
@@ -27,38 +27,38 @@ fi
 # Function to stop and clean up
 cleanup() {
     echo "🧹 Cleaning up existing deployment..."
-    podman stop controldegastos-api controldegastos-db controldegastos-cloudflared 2>/dev/null || true
-    podman rm controldegastos-api controldegastos-db controldegastos-cloudflared 2>/dev/null || true
-    podman pod stop controldegastos 2>/dev/null || true
-    podman pod rm controldegastos 2>/dev/null || true
+    podman stop controldecontabilidad-api controldecontabilidad-db controldecontabilidad-cloudflared 2>/dev/null || true
+    podman rm controldecontabilidad-api controldecontabilidad-db controldecontabilidad-cloudflared 2>/dev/null || true
+    podman pod stop controldecontabilidad 2>/dev/null || true
+    podman pod rm controldecontabilidad 2>/dev/null || true
 }
 
 # Function to deploy
 deploy() {
     echo "📦 Building application image..."
-    podman build -t controldegastos:latest -f Dockerfile .
+    podman build -t controldecontabilidad:latest -f Dockerfile .
 
     echo "🔧 Creating pod..."
-    podman pod create --name controldegastos \
+    podman pod create --name controldecontabilidad \
         -p 8080:8080
 
     echo "🐘 Starting PostgreSQL..."
-    podman run -d --pod controldegastos --name controldegastos-db \
+    podman run -d --pod controldecontabilidad --name controldecontabilidad-db \
         --env-file .env.production \
-        -v controldegastos_pgdata:/var/lib/postgresql/data \
+        -v controldecontabilidad_pgdata:/var/lib/postgresql/data \
         docker.io/library/postgres:16-alpine
 
     echo "⏳ Waiting for database to be ready..."
     sleep 10
 
     echo "🚀 Starting API..."
-    podman run -d --pod controldegastos --name controldegastos-api \
+    podman run -d --pod controldecontabilidad --name controldecontabilidad-api \
         --env-file .env.production \
         -e STATIC_DIR=/web/dist \
-        controldegastos:latest
+        controldecontabilidad:latest
 
     echo "🌐 Starting Cloudflare Tunnel..."
-    podman run -d --pod controldegastos --name controldegastos-cloudflared \
+    podman run -d --pod controldecontabilidad --name controldecontabilidad-cloudflared \
         --env-file .env.production \
         docker.io/cloudflare/cloudflared:latest \
         tunnel run
@@ -67,16 +67,16 @@ deploy() {
     echo "✅ Deployment complete!"
     echo
     echo "📊 Status:"
-    podman ps --pod --filter pod=controldegastos
+    podman ps --pod --filter pod=controldecontabilidad
     echo
     echo "🌐 Application: $PUBLIC_URL"
     echo "   Local:       http://localhost:8080"
     echo
     echo "📝 Useful commands:"
-    echo "  View API logs:    podman logs -f controldegastos-api"
-    echo "  View tunnel logs: podman logs -f controldegastos-cloudflared"
-    echo "  Stop:             podman pod stop controldegastos"
-    echo "  Start:            podman pod start controldegastos"
+    echo "  View API logs:    podman logs -f controldecontabilidad-api"
+    echo "  View tunnel logs: podman logs -f controldecontabilidad-cloudflared"
+    echo "  Stop:             podman pod stop controldecontabilidad"
+    echo "  Start:            podman pod start controldecontabilidad"
     echo "  Remove:           ./deploy.sh cleanup"
 }
 
@@ -92,18 +92,18 @@ case "${1:-deploy}" in
         ;;
     restart)
         echo "🔄 Restarting..."
-        podman pod restart controldegastos
+        podman pod restart controldecontabilidad
         echo "✅ Restart complete!"
         echo "   Application: $PUBLIC_URL"
         ;;
     status)
         echo "📊 Status:"
-        podman ps --pod --filter pod=controldegastos
+        podman ps --pod --filter pod=controldecontabilidad
         echo
         echo "🌐 Application: $PUBLIC_URL"
         ;;
     logs)
-        podman logs -f controldegastos-api
+        podman logs -f controldecontabilidad-api
         ;;
     *)
         echo "Usage: $0 {deploy|cleanup|restart|status|logs}"

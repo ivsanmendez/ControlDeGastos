@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
 )
 
 func TestNew_Valid(t *testing.T) {
