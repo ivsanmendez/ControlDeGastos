@@ -4,7 +4,9 @@ node = "22"
 
 [env]
 PORT = "8080"
-APP_NAME = "ControlDeGastos"
+APP_NAME = "ControlDeContabilidad"
+DATABASE_URL = "postgres://postgres:postgres@localhost:5432/controldecontabilidad?sslmode=disable"
+LOG_LEVEL = "debug"
 
 [tasks.build]
 description = "Build the Go API binary"

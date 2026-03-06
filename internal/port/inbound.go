@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
 )
 
 // ExpenseService is the driving port — the contract that inbound adapters

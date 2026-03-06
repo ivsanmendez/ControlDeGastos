@@ -5,8 +5,8 @@ import (
 	"log"
 	"sync"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
-	"github.com/ivsanmendez/ControlDeGastos/internal/port"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/port"
 )
 
 // InMemBus is a synchronous in-memory event bus.

@@ -3,7 +3,7 @@ package httpapi
 import (
 	"net/http"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/port"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/port"
 )
 
 // RegisterRoutes wires all HTTP routes onto the given mux.

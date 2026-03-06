@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
 )
 
 // fakeRepo is an in-memory implementation of expense.Repository.

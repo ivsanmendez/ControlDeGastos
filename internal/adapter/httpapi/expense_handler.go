@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
-	"github.com/ivsanmendez/ControlDeGastos/internal/port"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/port"
 )
 
 type ExpenseHandler struct {

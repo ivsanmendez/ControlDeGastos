@@ -1,4 +1,4 @@
-module github.com/ivsanmendez/ControlDeGastos
+module github.com/ivsanmendez/ControlDeContabilidad
 
 go 1.23.12
 

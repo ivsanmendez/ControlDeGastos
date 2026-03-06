@@ -103,7 +103,7 @@ sudo apt install nginx certbot python3-certbot-nginx
 
 ### Configuration
 
-Create `/etc/nginx/sites-available/controldegastos`:
+Create `/etc/nginx/sites-available/controldecontabilidad`:
 
 ```nginx
 # HTTP - redirect to HTTPS
@@ -138,8 +138,8 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 
     # Logging
-    access_log /var/log/nginx/controldegastos-access.log;
-    error_log /var/log/nginx/controldegastos-error.log;
+    access_log /var/log/nginx/controldecontabilidad-access.log;
+    error_log /var/log/nginx/controldecontabilidad-error.log;
 
     # Reverse proxy to Go API
     location / {
@@ -168,7 +168,7 @@ server {
 
 ```bash
 # Enable site
-sudo ln -s /etc/nginx/sites-available/controldegastos /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/controldecontabilidad /etc/nginx/sites-enabled/
 
 # Test configuration
 sudo nginx -t

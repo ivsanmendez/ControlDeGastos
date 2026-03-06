@@ -3,7 +3,7 @@ package port
 import (
 	"context"
 
-	"github.com/ivsanmendez/ControlDeGastos/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
 )
 
 // ExpenseRepository is the driven port for expense persistence.

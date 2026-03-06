@@ -1,7 +1,7 @@
-# Project Brief: ControlDeGastos
+# Project Brief: ControlDeContabilidad
 
 ## Overview
-ControlDeGastos is a full-stack expense tracking application.
+ControlDeContabilidad is a full-stack financial and accounting management application.
 
 ## Tech Stack
 - **Backend**: Go 1.23 (REST API)
@@ -10,7 +10,7 @@ ControlDeGastos is a full-stack expense tracking application.
 - **Tool management**: mise (Go 1.23, Node 22)
 - **Containerization**: Docker + Docker Compose (primary development and deployment method)
 - **CI/CD**: GitHub Actions
-- **Source control**: GitHub (github.com/ivsanmendez/ControlDeGastos)
+- **Source control**: GitHub (github.com/ivsanmendez/ControlDeContabilidad)
 
 ## Architecture
 - Monorepo: Go API at root, React SPA in `web/`
@@ -19,6 +19,7 @@ ControlDeGastos is a full-stack expense tracking application.
 - PostgreSQL as the persistent data store
 
 ## Project Goals
-- Track personal/household expenses
-- Categorize and visualize spending
+- Manage personal/household finances and accounting
+- Track expenses, income, and financial transactions
+- Categorize and visualize financial data
 - Simple, maintainable codebase

@@ -2,13 +2,13 @@
 
 ## Overview
 
-ControlDeGastos is deployed as a containerized application using Podman pods. The Go API serves both the REST API and the React SPA static files. HTTPS is provided by Cloudflare Tunnel — no port forwarding or SSL certificates required.
+ControlDeContabilidad is deployed as a containerized application using Podman pods. The Go API serves both the REST API and the React SPA static files. HTTPS is provided by Cloudflare Tunnel — no port forwarding or SSL certificates required.
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│               Podman Pod "controldegastos"                │
+│               Podman Pod "controldecontabilidad"                │
 │                                                          │
 │  ┌──────────────────┐   ┌──────────────────┐           │
 │  │  Go API + SPA    │──▶│  PostgreSQL 16   │           │
@@ -40,12 +40,12 @@ Create `.env.production` with:
 
 ```bash
 # PostgreSQL
-POSTGRES_USER=controldegastos
+POSTGRES_USER=controldecontabilidad
 POSTGRES_PASSWORD=<strong_password>
-POSTGRES_DB=controldegastos
+POSTGRES_DB=controldecontabilidad
 
 # Database URL (uses localhost — pod networking)
-DATABASE_URL=postgres://controldegastos:<same_password>@localhost:5432/controldegastos?sslmode=disable
+DATABASE_URL=postgres://controldecontabilidad:<same_password>@localhost:5432/controldecontabilidad?sslmode=disable
 
 # API
 PORT=8080
@@ -74,7 +74,7 @@ curl http://localhost:8080/health
 curl https://cdg.meyis.work/health
 
 # Check tunnel is connected
-podman logs controldegastos-cloudflared
+podman logs controldecontabilidad-cloudflared
 ```
 
 ## Managing the Application
@@ -89,22 +89,22 @@ podman logs controldegastos-cloudflared
 
 Direct Podman commands:
 ```bash
-podman pod stop controldegastos     # Stop
-podman pod start controldegastos    # Start
-podman logs -f controldegastos-api  # API logs
-podman logs -f controldegastos-cloudflared  # Tunnel logs
+podman pod stop controldecontabilidad     # Stop
+podman pod start controldecontabilidad    # Start
+podman logs -f controldecontabilidad-api  # API logs
+podman logs -f controldecontabilidad-cloudflared  # Tunnel logs
 ```
 
 ## Database Backups
 
 ```bash
 # Backup
-podman exec controldegastos-db \
-    pg_dump -U controldegastos controldegastos > backup-$(date +%Y%m%d).sql
+podman exec controldecontabilidad-db \
+    pg_dump -U controldecontabilidad controldecontabilidad > backup-$(date +%Y%m%d).sql
 
 # Restore
-podman exec -i controldegastos-db \
-    psql -U controldegastos controldegastos < backup-20260217.sql
+podman exec -i controldecontabilidad-db \
+    psql -U controldecontabilidad controldecontabilidad < backup-20260217.sql
 ```
 
 ## Monitoring
@@ -117,7 +117,7 @@ podman stats
 curl http://localhost:8080/health
 
 # Database ready check
-podman exec controldegastos-db pg_isready -U controldegastos
+podman exec controldecontabilidad-db pg_isready -U controldecontabilidad
 ```
 
 ## Troubleshooting
@@ -125,14 +125,14 @@ podman exec controldegastos-db pg_isready -U controldegastos
 ### Application won't start
 
 ```bash
-podman logs controldegastos-api
-podman logs controldegastos-db
+podman logs controldecontabilidad-api
+podman logs controldecontabilidad-db
 ```
 
 ### Tunnel not connecting
 
 ```bash
-podman logs controldegastos-cloudflared
+podman logs controldecontabilidad-cloudflared
 # Should show: "Connection established" within ~5 seconds
 # If not: verify TUNNEL_TOKEN in .env.production
 ```
@@ -148,6 +148,6 @@ grep DATABASE_URL .env.production
 ### SPA routes not working
 
 The Go API serves `index.html` for all non-API routes. If broken:
-1. Verify React build: `podman exec controldegastos-api ls /web/dist/`
+1. Verify React build: `podman exec controldecontabilidad-api ls /web/dist/`
 2. Verify `STATIC_DIR=/web/dist` is set
 3. Rebuild: `./deploy.sh deploy`

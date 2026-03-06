@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ControlDeGastos — full-stack expense tracking app. Go REST API + React SPA + PostgreSQL, all orchestrated via Docker Compose.
+ControlDeContabilidad — full-stack financial and accounting management app. Go REST API + React SPA + PostgreSQL, all orchestrated via Docker Compose.
 
 ## Memory Bank
 

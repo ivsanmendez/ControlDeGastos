@@ -40,7 +40,7 @@ The Go backend follows hexagonal architecture to support future AI agent adapter
 
 ## Repository Layout
 ```
-ControlDeGastos/
+ControlDeContabilidad/
 ├── cmd/api/main.go              # Composition root (wires all adapters)
 ├── internal/
 │   ├── domain/expense/          # Core hexagon (zero external deps)
