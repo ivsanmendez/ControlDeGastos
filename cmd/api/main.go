@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ivsanmendez/ControlDeContabilidad/db/migrations"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/eventbus"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/httpapi"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/postgres"
