@@ -24,22 +24,21 @@
 ## Current Board State
 
 ### Backlog
-- #3 Add domain unit tests with fake adapters [`backend`, `domain`]
-- #4 Build React expense management UI [`frontend`]
-- #5 Design and implement authentication [`backend`, `frontend`]
 - #6 Implement AI agent driving adapter [`agentic`, `backend`]
 - #7 Replace in-memory event bus with persistent broker [`agentic`, `infrastructure`]
 
 ### Todo
-_(empty)_
+- #4 Build React expense management UI [`frontend`]
 
 ### In Progress
-_(empty)_
+_(none)_
 
 ### Review
-_(empty)_
+- #9 Rename project from ControlDeGastos to ControlDeContabilidad [`backend`, `infrastructure`] → PR #8
+- SAT certificate signing + print-sign dialog [`backend`, `frontend`] — not yet a GitHub issue
 
 ### Done
-- #2 Set up database migrations [`backend`, `infrastructure`]
 - #1 Implement PostgreSQL expense repository [`backend`, `domain`]
+- #2 Set up database migrations [`backend`, `infrastructure`]
 - #3 Add domain unit tests with fake adapters [`backend`, `domain`]
+- #5 Design and implement authentication [`backend`] — AAA framework (all 8 phases)

@@ -7,6 +7,7 @@ Architecture Decision Records (ADRs). Document significant technical choices and
 |------|---------|
 | `01_hexagonal_architecture.md` | Ports & adapters pattern for agentic system scalability |
 | `02_pr_template.md` | Convention-aligned PR template structure and rationale |
+| `03_aaa_framework.md` | AAA (Authentication, Authorization, Accounting) design and implementation plan |
 
 ## Template
 When adding a new ADR, use `NN_short_name.md` and include:

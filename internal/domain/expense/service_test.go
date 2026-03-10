@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/user"
 )
 
 // fakeRepo is an in-memory implementation of expense.Repository.
@@ -48,6 +49,16 @@ func (r *fakeRepo) FindAll(_ context.Context) ([]expense.Expense, error) {
 	return result, nil
 }
 
+func (r *fakeRepo) FindAllByUser(_ context.Context, userID int64) ([]expense.Expense, error) {
+	var result []expense.Expense
+	for _, e := range r.data {
+		if e.UserID == userID {
+			result = append(result, *e)
+		}
+	}
+	return result, nil
+}
+
 func (r *fakeRepo) Delete(_ context.Context, id int64) error {
 	if _, ok := r.data[id]; !ok {
 		return expense.ErrNotFound
@@ -78,15 +89,23 @@ var (
 	testDate = time.Date(2026, 2, 17, 0, 0, 0, 0, time.UTC)
 )
 
+const (
+	userID1 int64 = 1
+	userID2 int64 = 2
+)
+
 func TestCreateExpense_HappyPath(t *testing.T) {
 	svc, repo, pub := newService()
 
-	e, err := svc.CreateExpense(ctx, "Lunch", 12.50, expense.CategoryFood, testDate)
+	e, err := svc.CreateExpense(ctx, userID1, "Lunch", 12.50, expense.CategoryFood, testDate)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if e.ID == 0 {
 		t.Error("expected ID to be set after save")
+	}
+	if e.UserID != userID1 {
+		t.Errorf("userID = %d, want %d", e.UserID, userID1)
 	}
 	if _, ok := repo.data[e.ID]; !ok {
 		t.Error("expense not found in repo after create")
@@ -99,7 +118,7 @@ func TestCreateExpense_HappyPath(t *testing.T) {
 func TestCreateExpense_InvalidInput(t *testing.T) {
 	svc, _, pub := newService()
 
-	_, err := svc.CreateExpense(ctx, "", 12.50, expense.CategoryFood, testDate)
+	_, err := svc.CreateExpense(ctx, userID1, "", 12.50, expense.CategoryFood, testDate)
 	if !errors.Is(err, expense.ErrEmptyDescription) {
 		t.Errorf("expected ErrEmptyDescription, got %v", err)
 	}
@@ -112,17 +131,17 @@ func TestCreateExpense_RepoError(t *testing.T) {
 	svc, repo, _ := newService()
 	repo.saveErr = errors.New("db unavailable")
 
-	_, err := svc.CreateExpense(ctx, "Taxi", 8.00, expense.CategoryTransport, testDate)
+	_, err := svc.CreateExpense(ctx, userID1, "Taxi", 8.00, expense.CategoryTransport, testDate)
 	if err == nil {
 		t.Fatal("expected error from repo, got nil")
 	}
 }
 
-func TestGetExpense_Found(t *testing.T) {
+func TestGetExpense_OwnerCanAccess(t *testing.T) {
 	svc, _, _ := newService()
-	created, _ := svc.CreateExpense(ctx, "Bus", 2.50, expense.CategoryTransport, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
 
-	got, err := svc.GetExpense(ctx, created.ID)
+	got, err := svc.GetExpense(ctx, userID1, user.RoleUser, created.ID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -131,21 +150,58 @@ func TestGetExpense_Found(t *testing.T) {
 	}
 }
 
+func TestGetExpense_AdminCanAccessAny(t *testing.T) {
+	svc, _, _ := newService()
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
+
+	got, err := svc.GetExpense(ctx, userID2, user.RoleAdmin, created.ID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.ID != created.ID {
+		t.Errorf("id = %d, want %d", got.ID, created.ID)
+	}
+}
+
+func TestGetExpense_NonOwnerForbidden(t *testing.T) {
+	svc, _, _ := newService()
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
+
+	_, err := svc.GetExpense(ctx, userID2, user.RoleUser, created.ID)
+	if !errors.Is(err, expense.ErrForbidden) {
+		t.Errorf("expected ErrForbidden, got %v", err)
+	}
+}
+
 func TestGetExpense_NotFound(t *testing.T) {
 	svc, _, _ := newService()
 
-	_, err := svc.GetExpense(ctx, 999)
+	_, err := svc.GetExpense(ctx, userID1, user.RoleUser, 999)
 	if !errors.Is(err, expense.ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got %v", err)
 	}
 }
 
-func TestListExpenses(t *testing.T) {
+func TestListExpenses_UserSeesOnlyOwn(t *testing.T) {
 	svc, _, _ := newService()
-	svc.CreateExpense(ctx, "Coffee", 3.00, expense.CategoryFood, testDate)
-	svc.CreateExpense(ctx, "Metro", 1.50, expense.CategoryTransport, testDate)
+	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, expense.CategoryFood, testDate)
+	svc.CreateExpense(ctx, userID2, "Metro", 1.50, expense.CategoryTransport, testDate)
 
-	list, err := svc.ListExpenses(ctx)
+	list, err := svc.ListExpenses(ctx, userID1, user.RoleUser)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(list) != 1 {
+		t.Errorf("expected 1 expense, got %d", len(list))
+	}
+}
+
+func TestListExpenses_AdminSeesAll(t *testing.T) {
+	svc, _, _ := newService()
+	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, expense.CategoryFood, testDate)
+	svc.CreateExpense(ctx, userID2, "Metro", 1.50, expense.CategoryTransport, testDate)
+
+	list, err := svc.ListExpenses(ctx, userID1, user.RoleAdmin)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -154,12 +210,12 @@ func TestListExpenses(t *testing.T) {
 	}
 }
 
-func TestDeleteExpense_HappyPath(t *testing.T) {
+func TestDeleteExpense_OwnerCanDelete(t *testing.T) {
 	svc, repo, pub := newService()
-	created, _ := svc.CreateExpense(ctx, "Dinner", 30.00, expense.CategoryFood, testDate)
-	pub.events = nil // reset after create
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+	pub.events = nil
 
-	err := svc.DeleteExpense(ctx, created.ID)
+	err := svc.DeleteExpense(ctx, userID1, user.RoleUser, created.ID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -171,10 +227,33 @@ func TestDeleteExpense_HappyPath(t *testing.T) {
 	}
 }
 
+func TestDeleteExpense_NonOwnerForbidden(t *testing.T) {
+	svc, _, _ := newService()
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+
+	err := svc.DeleteExpense(ctx, userID2, user.RoleUser, created.ID)
+	if !errors.Is(err, expense.ErrForbidden) {
+		t.Errorf("expected ErrForbidden, got %v", err)
+	}
+}
+
+func TestDeleteExpense_AdminCanDeleteAny(t *testing.T) {
+	svc, repo, _ := newService()
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+
+	err := svc.DeleteExpense(ctx, userID2, user.RoleAdmin, created.ID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := repo.data[created.ID]; ok {
+		t.Error("expense should be removed")
+	}
+}
+
 func TestDeleteExpense_NotFound(t *testing.T) {
 	svc, _, _ := newService()
 
-	err := svc.DeleteExpense(ctx, 999)
+	err := svc.DeleteExpense(ctx, userID1, user.RoleUser, 999)
 	if !errors.Is(err, expense.ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got %v", err)
 	}

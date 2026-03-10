@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -22,12 +23,18 @@ type createExpenseRequest struct {
 }
 
 func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
+	claims, ok := ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "no claims in context")
+		return
+	}
+
 	var req createExpenseRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	e, err := h.svc.CreateExpense(r.Context(), req.Description, req.Amount, req.Category, req.Date)
+	e, err := h.svc.CreateExpense(r.Context(), claims.UserID, req.Description, req.Amount, req.Category, req.Date)
 	if err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
@@ -36,7 +43,13 @@ func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) List(w http.ResponseWriter, r *http.Request) {
-	expenses, err := h.svc.ListExpenses(r.Context())
+	claims, ok := ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "no claims in context")
+		return
+	}
+
+	expenses, err := h.svc.ListExpenses(r.Context(), claims.UserID, claims.Role)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -45,27 +58,47 @@ func (h *ExpenseHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	claims, ok := ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "no claims in context")
+		return
+	}
+
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
 		return
 	}
-	e, err := h.svc.GetExpense(r.Context(), id)
+	e, err := h.svc.GetExpense(r.Context(), claims.UserID, claims.Role, id)
 	if err != nil {
-		writeError(w, http.StatusNotFound, err.Error())
+		if errors.Is(err, expense.ErrForbidden) {
+			writeError(w, http.StatusForbidden, err.Error())
+		} else {
+			writeError(w, http.StatusNotFound, err.Error())
+		}
 		return
 	}
 	writeJSON(w, http.StatusOK, e)
 }
 
 func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	claims, ok := ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "no claims in context")
+		return
+	}
+
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid id")
 		return
 	}
-	if err := h.svc.DeleteExpense(r.Context(), id); err != nil {
-		writeError(w, http.StatusNotFound, err.Error())
+	if err := h.svc.DeleteExpense(r.Context(), claims.UserID, claims.Role, id); err != nil {
+		if errors.Is(err, expense.ErrForbidden) {
+			writeError(w, http.StatusForbidden, err.Error())
+		} else {
+			writeError(w, http.StatusNotFound, err.Error())
+		}
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

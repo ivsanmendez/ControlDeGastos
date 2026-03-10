@@ -9,6 +9,8 @@ var (
 	ErrNotFound         = errors.New("expense not found")
 	ErrInvalidAmount    = errors.New("amount must be positive")
 	ErrEmptyDescription = errors.New("description cannot be empty")
+	ErrInvalidUserID    = errors.New("user ID must be positive")
+	ErrForbidden        = errors.New("access denied")
 )
 
 type Category string
@@ -22,6 +24,7 @@ const (
 
 type Expense struct {
 	ID          int64
+	UserID      int64
 	Description string
 	Amount      float64
 	Category    Category
@@ -31,7 +34,10 @@ type Expense struct {
 }
 
 // New creates an Expense enforcing domain invariants.
-func New(description string, amount float64, category Category, date time.Time) (*Expense, error) {
+func New(userID int64, description string, amount float64, category Category, date time.Time) (*Expense, error) {
+	if userID <= 0 {
+		return nil, ErrInvalidUserID
+	}
 	if description == "" {
 		return nil, ErrEmptyDescription
 	}
@@ -40,6 +46,7 @@ func New(description string, amount float64, category Category, date time.Time) 
 	}
 	now := time.Now()
 	return &Expense{
+		UserID:      userID,
 		Description: description,
 		Amount:      amount,
 		Category:    category,

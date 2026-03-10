@@ -7,10 +7,16 @@ import (
 	"path/filepath"
 
 	"github.com/ivsanmendez/ControlDeContabilidad/db/migrations"
+	bcryptadapter "github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/bcrypt"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/certsigner"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/eventbus"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/httpapi"
+	jwtadapter "github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/jwt"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/adapter/postgres"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/contribution"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/contributor"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
+	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/user"
 )
 
 func main() {
@@ -27,15 +33,38 @@ func main() {
 		log.Fatalf("migrations: %v", err)
 	}
 
-	repo := postgres.NewExpenseRepo(db)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
+	expenseRepo := postgres.NewExpenseRepo(db)
+	userRepo := postgres.NewUserRepo(db)
+	auditRepo := postgres.NewAuditRepo(db)
+	contributorRepo := postgres.NewContributorRepo(db)
+	contribRepo := postgres.NewContributionRepo(db)
 	bus := eventbus.New()
+	hasher := bcryptadapter.New()
+	jwtIssuer := jwtadapter.NewIssuer(jwtSecret)
+	signer, err := certsigner.New(os.Getenv("SIGN_CERT_PATH"), os.Getenv("SIGN_KEY_PATH"))
+	if err != nil {
+		log.Fatalf("certsigner: %v", err)
+	}
+	if signer.Available() {
+		log.Println("Receipt signing enabled")
+	} else {
+		log.Println("Receipt signing disabled (SIGN_CERT_PATH / SIGN_KEY_PATH not set)")
+	}
 
 	// Domain services
-	expenseSvc := expense.NewService(repo, bus)
+	expenseSvc := expense.NewService(expenseRepo, bus)
+	authSvc := user.NewService(userRepo, hasher, jwtIssuer, auditRepo)
+	contributorSvc := contributor.NewService(contributorRepo)
+	contribSvc := contribution.NewService(contribRepo)
 
 	// Inbound adapters
 	mux := http.NewServeMux()
-	httpapi.RegisterRoutes(mux, expenseSvc)
+	httpapi.RegisterRoutes(mux, expenseSvc, authSvc, contribSvc, contributorSvc, jwtIssuer, signer)
 
 	// Serve static files (production React build)
 	staticDir := os.Getenv("STATIC_DIR")

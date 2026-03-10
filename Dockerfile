@@ -12,7 +12,7 @@ COPY web/ ./
 RUN npm run build
 
 # --- Build Go API ---
-FROM docker.io/library/golang:1.23-alpine AS api-builder
+FROM docker.io/library/golang:1.24-alpine AS api-builder
 
 WORKDIR /app
 

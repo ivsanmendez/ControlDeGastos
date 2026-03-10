@@ -9,9 +9,12 @@ import (
 
 func TestNew_Valid(t *testing.T) {
 	date := time.Date(2026, 2, 17, 0, 0, 0, 0, time.UTC)
-	e, err := expense.New("Groceries", 50.00, expense.CategoryFood, date)
+	e, err := expense.New(1, "Groceries", 50.00, expense.CategoryFood, date)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+	if e.UserID != 1 {
+		t.Errorf("userID = %d, want 1", e.UserID)
 	}
 	if e.Description != "Groceries" {
 		t.Errorf("description = %q, want %q", e.Description, "Groceries")
@@ -33,22 +36,29 @@ func TestNew_Valid(t *testing.T) {
 	}
 }
 
+func TestNew_InvalidUserID(t *testing.T) {
+	_, err := expense.New(0, "Coffee", 5.00, expense.CategoryFood, time.Now())
+	if err != expense.ErrInvalidUserID {
+		t.Errorf("expected ErrInvalidUserID, got %v", err)
+	}
+}
+
 func TestNew_EmptyDescription(t *testing.T) {
-	_, err := expense.New("", 50.00, expense.CategoryFood, time.Now())
+	_, err := expense.New(1, "", 50.00, expense.CategoryFood, time.Now())
 	if err != expense.ErrEmptyDescription {
 		t.Errorf("expected ErrEmptyDescription, got %v", err)
 	}
 }
 
 func TestNew_ZeroAmount(t *testing.T) {
-	_, err := expense.New("Coffee", 0, expense.CategoryFood, time.Now())
+	_, err := expense.New(1, "Coffee", 0, expense.CategoryFood, time.Now())
 	if err != expense.ErrInvalidAmount {
 		t.Errorf("expected ErrInvalidAmount, got %v", err)
 	}
 }
 
 func TestNew_NegativeAmount(t *testing.T) {
-	_, err := expense.New("Coffee", -10.00, expense.CategoryFood, time.Now())
+	_, err := expense.New(1, "Coffee", -10.00, expense.CategoryFood, time.Now())
 	if err != expense.ErrInvalidAmount {
 		t.Errorf("expected ErrInvalidAmount, got %v", err)
 	}

@@ -3,7 +3,7 @@
 ## Runtime & Languages
 | Tool       | Version | Managed by |
 |------------|---------|------------|
-| Go         | 1.23    | mise       |
+| Go         | 1.24    | mise       |
 | Node.js    | 22      | mise       |
 | PostgreSQL | 16      | Docker     |
 
@@ -16,6 +16,15 @@
 | `.mise.local.toml` | Personal secrets/overrides | No (gitignored) |
 
 Activate with `export MISE_ENV=development` (or `test`).
+
+## Key Go Dependencies
+| Package | Purpose |
+|---------|---------|
+| `github.com/lib/pq` | PostgreSQL driver |
+| `github.com/pressly/goose/v3` | Database migrations |
+| `github.com/golang-jwt/jwt/v5` | JWT token issuance |
+| `golang.org/x/crypto` | bcrypt password hashing |
+| `github.com/youmark/pkcs8` | SAT encrypted PKCS#8 key decryption |
 
 ## Key Decisions
 - **mise** manages language runtimes (Go, Node) and environment profiles via `.mise.toml`

@@ -20,11 +20,12 @@ func NewExpenseRepo(db *sql.DB) *ExpenseRepo {
 
 func (r *ExpenseRepo) Save(ctx context.Context, e *expense.Expense) error {
 	const q = `
-		INSERT INTO expenses (description, amount, category, date, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO expenses (user_id, description, amount, category, date, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 
 	return r.db.QueryRowContext(ctx, q,
+		e.UserID,
 		e.Description,
 		e.Amount,
 		string(e.Category),
@@ -36,7 +37,7 @@ func (r *ExpenseRepo) Save(ctx context.Context, e *expense.Expense) error {
 
 func (r *ExpenseRepo) FindByID(ctx context.Context, id int64) (*expense.Expense, error) {
 	const q = `
-		SELECT id, description, amount, category, date, created_at, updated_at
+		SELECT id, user_id, description, amount, category, date, created_at, updated_at
 		FROM expenses
 		WHERE id = $1`
 
@@ -45,6 +46,7 @@ func (r *ExpenseRepo) FindByID(ctx context.Context, id int64) (*expense.Expense,
 
 	err := r.db.QueryRowContext(ctx, q, id).Scan(
 		&e.ID,
+		&e.UserID,
 		&e.Description,
 		&e.Amount,
 		&category,
@@ -65,11 +67,25 @@ func (r *ExpenseRepo) FindByID(ctx context.Context, id int64) (*expense.Expense,
 
 func (r *ExpenseRepo) FindAll(ctx context.Context) ([]expense.Expense, error) {
 	const q = `
-		SELECT id, description, amount, category, date, created_at, updated_at
+		SELECT id, user_id, description, amount, category, date, created_at, updated_at
 		FROM expenses
 		ORDER BY date DESC, created_at DESC`
 
-	rows, err := r.db.QueryContext(ctx, q)
+	return r.scanExpenses(ctx, q)
+}
+
+func (r *ExpenseRepo) FindAllByUser(ctx context.Context, userID int64) ([]expense.Expense, error) {
+	const q = `
+		SELECT id, user_id, description, amount, category, date, created_at, updated_at
+		FROM expenses
+		WHERE user_id = $1
+		ORDER BY date DESC, created_at DESC`
+
+	return r.scanExpenses(ctx, q, userID)
+}
+
+func (r *ExpenseRepo) scanExpenses(ctx context.Context, query string, args ...any) ([]expense.Expense, error) {
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("list expenses: %w", err)
 	}
@@ -82,6 +98,7 @@ func (r *ExpenseRepo) FindAll(ctx context.Context) ([]expense.Expense, error) {
 
 		if err := rows.Scan(
 			&e.ID,
+			&e.UserID,
 			&e.Description,
 			&e.Amount,
 			&category,

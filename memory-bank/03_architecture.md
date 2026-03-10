@@ -16,15 +16,18 @@ The Go backend follows hexagonal architecture to support future AI agent adapter
 │                     │         │                          │
 │  adapter/httpapi/   │         │   adapter/postgres/      │
 │  [future] agent/    │         │   adapter/eventbus/      │
-│  [future] grpc/     │         │   [future] nats/         │
+│  [future] grpc/     │         │   adapter/certsigner/    │
+│                     │         │   adapter/bcrypt/        │
+│                     │         │   adapter/jwt/           │
+│                     │         │   [future] nats/         │
 └────────┬────────────┘         └───────────┬──────────────┘
          │ depends on                       │ implements
          ▼                                  ▼
 ┌──────────────────────────────────────────────────────────┐
 │                     PORTS                                 │
-│  port/inbound.go    → ExpenseService interface           │
+│  port/inbound.go    → ExpenseService, AuthService, etc.  │
 │  domain/expense/    → Repository, EventPublisher ifaces  │
-│  port/outbound.go   → EventSubscriber interface          │
+│  port/outbound.go   → EventSubscriber, ReceiptSigner     │
 └──────────────────────────┬───────────────────────────────┘
                            │
               ┌────────────▼──────────────┐
@@ -53,7 +56,10 @@ ControlDeContabilidad/
 │   └── adapter/
 │       ├── httpapi/             # HTTP driving adapter
 │       ├── postgres/            # PostgreSQL driven adapter
-│       └── eventbus/            # In-memory event bus
+│       ├── eventbus/            # In-memory event bus
+│       ├── certsigner/          # SAT certificate signer (encrypted PKCS#8)
+│       ├── bcrypt/              # Password hashing
+│       └── jwt/                 # JWT token issuance
 ├── web/                         # React SPA (Vite + TypeScript)
 ├── memory-bank/                 # Project documentation
 ├── .github/workflows/           # GitHub Actions CI/CD

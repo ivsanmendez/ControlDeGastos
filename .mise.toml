@@ -1,12 +1,13 @@
 [tools]
-go = "1.23"
+go = "1.24"
 node = "22"
 
 [env]
 PORT = "8080"
 APP_NAME = "ControlDeContabilidad"
-DATABASE_URL = "postgres://postgres:postgres@localhost:5432/controldecontabilidad?sslmode=disable"
-LOG_LEVEL = "debug"
+DATABASE_URL = { required = true }
+JWT_SECRET = { required = true }
+LOG_LEVEL = { required = true }
 
 [tasks.build]
 description = "Build the Go API binary"
