@@ -18,10 +18,10 @@ type ExpenseHandler struct {
 }
 
 type createExpenseRequest struct {
-	Description string           `json:"description"`
-	Amount      float64          `json:"amount"`
-	Category    expense.Category `json:"category"`
-	Date        time.Time        `json:"date"`
+	Description string    `json:"description"`
+	Amount      float64   `json:"amount"`
+	CategoryID  int64     `json:"category_id"`
+	Date        time.Time `json:"date"`
 }
 
 func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_request_body")
 		return
 	}
-	e, err := h.svc.CreateExpense(r.Context(), claims.UserID, req.Description, req.Amount, req.Category, req.Date)
+	e, err := h.svc.CreateExpense(r.Context(), claims.UserID, req.Description, req.Amount, req.CategoryID, req.Date)
 	if err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return

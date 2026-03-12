@@ -6,20 +6,12 @@ import (
 )
 
 var (
-	ErrNotFound         = errors.New("expense not found")
-	ErrInvalidAmount    = errors.New("amount must be positive")
-	ErrEmptyDescription = errors.New("description cannot be empty")
-	ErrInvalidUserID    = errors.New("user ID must be positive")
-	ErrForbidden        = errors.New("access denied")
-)
-
-type Category string
-
-const (
-	CategoryFood      Category = "food"
-	CategoryTransport Category = "transport"
-	CategoryHousing   Category = "housing"
-	CategoryOther     Category = "other"
+	ErrNotFound          = errors.New("expense not found")
+	ErrInvalidAmount     = errors.New("amount must be positive")
+	ErrEmptyDescription  = errors.New("description cannot be empty")
+	ErrInvalidUserID     = errors.New("user ID must be positive")
+	ErrInvalidCategoryID = errors.New("category ID must be positive")
+	ErrForbidden         = errors.New("access denied")
 )
 
 type Expense struct {
@@ -27,14 +19,27 @@ type Expense struct {
 	UserID      int64
 	Description string
 	Amount      float64
-	Category    Category
+	CategoryID  int64
 	Date        time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
+// ExpenseDetail includes denormalized category name for list views.
+type ExpenseDetail struct {
+	ID           int64
+	UserID       int64
+	Description  string
+	Amount       float64
+	CategoryID   int64
+	CategoryName string
+	Date         time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 // New creates an Expense enforcing domain invariants.
-func New(userID int64, description string, amount float64, category Category, date time.Time) (*Expense, error) {
+func New(userID int64, description string, amount float64, categoryID int64, date time.Time) (*Expense, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
@@ -44,12 +49,15 @@ func New(userID int64, description string, amount float64, category Category, da
 	if amount <= 0 {
 		return nil, ErrInvalidAmount
 	}
+	if categoryID <= 0 {
+		return nil, ErrInvalidCategoryID
+	}
 	now := time.Now()
 	return &Expense{
 		UserID:      userID,
 		Description: description,
 		Amount:      amount,
-		Category:    category,
+		CategoryID:  categoryID,
 		Date:        date,
 		CreatedAt:   now,
 		UpdatedAt:   now,

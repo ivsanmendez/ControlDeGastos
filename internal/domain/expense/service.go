@@ -13,6 +13,8 @@ type Repository interface {
 	FindByID(ctx context.Context, id int64) (*Expense, error)
 	FindAll(ctx context.Context) ([]Expense, error)
 	FindAllByUser(ctx context.Context, userID int64) ([]Expense, error)
+	FindAllDetailed(ctx context.Context) ([]ExpenseDetail, error)
+	FindAllDetailedByUser(ctx context.Context, userID int64) ([]ExpenseDetail, error)
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -31,8 +33,8 @@ func NewService(repo Repository, events EventPublisher) *Service {
 	return &Service{repo: repo, events: events}
 }
 
-func (s *Service) CreateExpense(ctx context.Context, callerID int64, description string, amount float64, category Category, date time.Time) (*Expense, error) {
-	e, err := New(callerID, description, amount, category, date)
+func (s *Service) CreateExpense(ctx context.Context, callerID int64, description string, amount float64, categoryID int64, date time.Time) (*Expense, error) {
+	e, err := New(callerID, description, amount, categoryID, date)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +60,11 @@ func (s *Service) GetExpense(ctx context.Context, callerID int64, callerRole use
 	return e, nil
 }
 
-func (s *Service) ListExpenses(ctx context.Context, callerID int64, callerRole user.Role) ([]Expense, error) {
+func (s *Service) ListExpenses(ctx context.Context, callerID int64, callerRole user.Role) ([]ExpenseDetail, error) {
 	if callerRole == user.RoleAdmin {
-		return s.repo.FindAll(ctx)
+		return s.repo.FindAllDetailed(ctx)
 	}
-	return s.repo.FindAllByUser(ctx, callerID)
+	return s.repo.FindAllDetailedByUser(ctx, callerID)
 }
 
 func (s *Service) DeleteExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) error {

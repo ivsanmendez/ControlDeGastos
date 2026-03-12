@@ -10,13 +10,14 @@ import (
 )
 
 // RegisterRoutes wires all HTTP routes onto the given mux.
-func RegisterRoutes(mux *http.ServeMux, expenseSvc port.ExpenseService, authSvc port.AuthService, contribSvc port.ContributionService, contributorSvc port.ContributorService, categorySvc port.CategoryService, receiptSvc port.ReceiptFolioService, reportSvc port.ReportService, jwtIssuer *jwtadapter.Issuer, signer port.ReceiptSigner, tr *i18n.Translator) {
+func RegisterRoutes(mux *http.ServeMux, expenseSvc port.ExpenseService, authSvc port.AuthService, contribSvc port.ContributionService, contributorSvc port.ContributorService, categorySvc port.CategoryService, expCatSvc port.ExpenseCategoryService, receiptSvc port.ReceiptFolioService, reportSvc port.ReportService, jwtIssuer *jwtadapter.Issuer, signer port.ReceiptSigner, tr *i18n.Translator) {
 	auth := RequireAuth(jwtIssuer, tr)
 	expH := &ExpenseHandler{svc: expenseSvc, tr: tr}
 	authH := &AuthHandler{svc: authSvc, tr: tr}
 	contribH := &ContributionHandler{svc: contribSvc, tr: tr}
 	contributorH := &ContributorHandler{svc: contributorSvc, tr: tr}
 	categoryH := &CategoryHandler{svc: categorySvc, tr: tr}
+	expCatH := &ExpenseCategoryHandler{svc: expCatSvc, tr: tr}
 	receiptH := &ReceiptHandler{contribSvc: contribSvc, contributorSvc: contributorSvc, receiptSvc: receiptSvc, signer: signer, tr: tr}
 	reportH := &ReportHandler{svc: reportSvc, tr: tr}
 
@@ -90,6 +91,28 @@ func RegisterRoutes(mux *http.ServeMux, expenseSvc port.ExpenseService, authSvc 
 	mux.Handle("DELETE /contribution-categories/{id}", Chain(
 		http.HandlerFunc(categoryH.Delete),
 		auth, RequirePermission(user.PermCategoryDelete, tr),
+	))
+
+	// Protected expense category routes
+	mux.Handle("POST /expense-categories", Chain(
+		http.HandlerFunc(expCatH.Create),
+		auth, RequirePermission(user.PermExpenseCategoryCreate, tr),
+	))
+	mux.Handle("GET /expense-categories", Chain(
+		http.HandlerFunc(expCatH.List),
+		auth, RequirePermission(user.PermExpenseCategoryRead, tr),
+	))
+	mux.Handle("GET /expense-categories/{id}", Chain(
+		http.HandlerFunc(expCatH.GetByID),
+		auth, RequirePermission(user.PermExpenseCategoryRead, tr),
+	))
+	mux.Handle("PUT /expense-categories/{id}", Chain(
+		http.HandlerFunc(expCatH.Update),
+		auth, RequirePermission(user.PermExpenseCategoryUpdate, tr),
+	))
+	mux.Handle("DELETE /expense-categories/{id}", Chain(
+		http.HandlerFunc(expCatH.Delete),
+		auth, RequirePermission(user.PermExpenseCategoryDelete, tr),
 	))
 
 	// Protected contribution routes

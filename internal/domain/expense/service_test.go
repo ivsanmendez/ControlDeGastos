@@ -59,6 +59,32 @@ func (r *fakeRepo) FindAllByUser(_ context.Context, userID int64) ([]expense.Exp
 	return result, nil
 }
 
+func (r *fakeRepo) FindAllDetailed(_ context.Context) ([]expense.ExpenseDetail, error) {
+	result := make([]expense.ExpenseDetail, 0, len(r.data))
+	for _, e := range r.data {
+		result = append(result, expense.ExpenseDetail{
+			ID: e.ID, UserID: e.UserID, Description: e.Description,
+			Amount: e.Amount, CategoryID: e.CategoryID, CategoryName: "Test",
+			Date: e.Date, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
+		})
+	}
+	return result, nil
+}
+
+func (r *fakeRepo) FindAllDetailedByUser(_ context.Context, userID int64) ([]expense.ExpenseDetail, error) {
+	var result []expense.ExpenseDetail
+	for _, e := range r.data {
+		if e.UserID == userID {
+			result = append(result, expense.ExpenseDetail{
+				ID: e.ID, UserID: e.UserID, Description: e.Description,
+				Amount: e.Amount, CategoryID: e.CategoryID, CategoryName: "Test",
+				Date: e.Date, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
+			})
+		}
+	}
+	return result, nil
+}
+
 func (r *fakeRepo) Delete(_ context.Context, id int64) error {
 	if _, ok := r.data[id]; !ok {
 		return expense.ErrNotFound
@@ -90,14 +116,15 @@ var (
 )
 
 const (
-	userID1 int64 = 1
-	userID2 int64 = 2
+	userID1    int64 = 1
+	userID2    int64 = 2
+	categoryID int64 = 1
 )
 
 func TestCreateExpense_HappyPath(t *testing.T) {
 	svc, repo, pub := newService()
 
-	e, err := svc.CreateExpense(ctx, userID1, "Lunch", 12.50, expense.CategoryFood, testDate)
+	e, err := svc.CreateExpense(ctx, userID1, "Lunch", 12.50, categoryID, testDate)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -118,9 +145,21 @@ func TestCreateExpense_HappyPath(t *testing.T) {
 func TestCreateExpense_InvalidInput(t *testing.T) {
 	svc, _, pub := newService()
 
-	_, err := svc.CreateExpense(ctx, userID1, "", 12.50, expense.CategoryFood, testDate)
+	_, err := svc.CreateExpense(ctx, userID1, "", 12.50, categoryID, testDate)
 	if !errors.Is(err, expense.ErrEmptyDescription) {
 		t.Errorf("expected ErrEmptyDescription, got %v", err)
+	}
+	if len(pub.events) != 0 {
+		t.Error("no event should be published on invalid input")
+	}
+}
+
+func TestCreateExpense_InvalidCategoryID(t *testing.T) {
+	svc, _, pub := newService()
+
+	_, err := svc.CreateExpense(ctx, userID1, "Lunch", 12.50, 0, testDate)
+	if !errors.Is(err, expense.ErrInvalidCategoryID) {
+		t.Errorf("expected ErrInvalidCategoryID, got %v", err)
 	}
 	if len(pub.events) != 0 {
 		t.Error("no event should be published on invalid input")
@@ -131,7 +170,7 @@ func TestCreateExpense_RepoError(t *testing.T) {
 	svc, repo, _ := newService()
 	repo.saveErr = errors.New("db unavailable")
 
-	_, err := svc.CreateExpense(ctx, userID1, "Taxi", 8.00, expense.CategoryTransport, testDate)
+	_, err := svc.CreateExpense(ctx, userID1, "Taxi", 8.00, categoryID, testDate)
 	if err == nil {
 		t.Fatal("expected error from repo, got nil")
 	}
@@ -139,7 +178,7 @@ func TestCreateExpense_RepoError(t *testing.T) {
 
 func TestGetExpense_OwnerCanAccess(t *testing.T) {
 	svc, _, _ := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, categoryID, testDate)
 
 	got, err := svc.GetExpense(ctx, userID1, user.RoleUser, created.ID)
 	if err != nil {
@@ -152,7 +191,7 @@ func TestGetExpense_OwnerCanAccess(t *testing.T) {
 
 func TestGetExpense_AdminCanAccessAny(t *testing.T) {
 	svc, _, _ := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, categoryID, testDate)
 
 	got, err := svc.GetExpense(ctx, userID2, user.RoleAdmin, created.ID)
 	if err != nil {
@@ -165,7 +204,7 @@ func TestGetExpense_AdminCanAccessAny(t *testing.T) {
 
 func TestGetExpense_NonOwnerForbidden(t *testing.T) {
 	svc, _, _ := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, expense.CategoryTransport, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Bus", 2.50, categoryID, testDate)
 
 	_, err := svc.GetExpense(ctx, userID2, user.RoleUser, created.ID)
 	if !errors.Is(err, expense.ErrForbidden) {
@@ -184,8 +223,8 @@ func TestGetExpense_NotFound(t *testing.T) {
 
 func TestListExpenses_UserSeesOnlyOwn(t *testing.T) {
 	svc, _, _ := newService()
-	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, expense.CategoryFood, testDate)
-	svc.CreateExpense(ctx, userID2, "Metro", 1.50, expense.CategoryTransport, testDate)
+	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, categoryID, testDate)
+	svc.CreateExpense(ctx, userID2, "Metro", 1.50, categoryID, testDate)
 
 	list, err := svc.ListExpenses(ctx, userID1, user.RoleUser)
 	if err != nil {
@@ -198,8 +237,8 @@ func TestListExpenses_UserSeesOnlyOwn(t *testing.T) {
 
 func TestListExpenses_AdminSeesAll(t *testing.T) {
 	svc, _, _ := newService()
-	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, expense.CategoryFood, testDate)
-	svc.CreateExpense(ctx, userID2, "Metro", 1.50, expense.CategoryTransport, testDate)
+	svc.CreateExpense(ctx, userID1, "Coffee", 3.00, categoryID, testDate)
+	svc.CreateExpense(ctx, userID2, "Metro", 1.50, categoryID, testDate)
 
 	list, err := svc.ListExpenses(ctx, userID1, user.RoleAdmin)
 	if err != nil {
@@ -212,7 +251,7 @@ func TestListExpenses_AdminSeesAll(t *testing.T) {
 
 func TestDeleteExpense_OwnerCanDelete(t *testing.T) {
 	svc, repo, pub := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, categoryID, testDate)
 	pub.events = nil
 
 	err := svc.DeleteExpense(ctx, userID1, user.RoleUser, created.ID)
@@ -229,7 +268,7 @@ func TestDeleteExpense_OwnerCanDelete(t *testing.T) {
 
 func TestDeleteExpense_NonOwnerForbidden(t *testing.T) {
 	svc, _, _ := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, categoryID, testDate)
 
 	err := svc.DeleteExpense(ctx, userID2, user.RoleUser, created.ID)
 	if !errors.Is(err, expense.ErrForbidden) {
@@ -239,7 +278,7 @@ func TestDeleteExpense_NonOwnerForbidden(t *testing.T) {
 
 func TestDeleteExpense_AdminCanDeleteAny(t *testing.T) {
 	svc, repo, _ := newService()
-	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, expense.CategoryFood, testDate)
+	created, _ := svc.CreateExpense(ctx, userID1, "Dinner", 30.00, categoryID, testDate)
 
 	err := svc.DeleteExpense(ctx, userID2, user.RoleAdmin, created.ID)
 	if err != nil {

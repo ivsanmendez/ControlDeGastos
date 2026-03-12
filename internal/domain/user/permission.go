@@ -26,6 +26,11 @@ const (
 	PermReceiptVerify Permission = "receipt:verify"
 
 	PermReportRead Permission = "report:read"
+
+	PermExpenseCategoryCreate Permission = "expense_category:create"
+	PermExpenseCategoryRead   Permission = "expense_category:read"
+	PermExpenseCategoryUpdate Permission = "expense_category:update"
+	PermExpenseCategoryDelete Permission = "expense_category:delete"
 )
 
 var rolePermissions = map[Role][]Permission{
@@ -46,6 +51,10 @@ var rolePermissions = map[Role][]Permission{
 		PermCategoryDelete,
 		PermReceiptVerify,
 		PermReportRead,
+		PermExpenseCategoryCreate,
+		PermExpenseCategoryRead,
+		PermExpenseCategoryUpdate,
+		PermExpenseCategoryDelete,
 	},
 	RoleAdmin: {
 		PermExpenseCreate,
@@ -66,6 +75,10 @@ var rolePermissions = map[Role][]Permission{
 		PermCategoryDelete,
 		PermReceiptVerify,
 		PermReportRead,
+		PermExpenseCategoryCreate,
+		PermExpenseCategoryRead,
+		PermExpenseCategoryUpdate,
+		PermExpenseCategoryDelete,
 	},
 }
 

@@ -47,6 +47,9 @@ var MessagesEN = map[string]string{
 	"failed_to_generate_folio":         "failed to generate folio",
 	"failed_to_save_receipt":           "failed to save receipt",
 
+	// Expense categories
+	"expense_category_not_found": "expense category not found",
+
 	// Reports
 	"report_query_failed": "report query failed",
 }

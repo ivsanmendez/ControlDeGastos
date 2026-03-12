@@ -8,6 +8,7 @@ import (
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/contribution"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/contributor"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense"
+	ec "github.com/ivsanmendez/ControlDeContabilidad/internal/domain/expense_category"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/receipt"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/report"
 	"github.com/ivsanmendez/ControlDeContabilidad/internal/domain/user"
@@ -16,9 +17,9 @@ import (
 // ExpenseService is the driving port — the contract that inbound adapters
 // (HTTP handlers, AI agents) depend on.
 type ExpenseService interface {
-	CreateExpense(ctx context.Context, callerID int64, description string, amount float64, category expense.Category, date time.Time) (*expense.Expense, error)
+	CreateExpense(ctx context.Context, callerID int64, description string, amount float64, categoryID int64, date time.Time) (*expense.Expense, error)
 	GetExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) (*expense.Expense, error)
-	ListExpenses(ctx context.Context, callerID int64, callerRole user.Role) ([]expense.Expense, error)
+	ListExpenses(ctx context.Context, callerID int64, callerRole user.Role) ([]expense.ExpenseDetail, error)
 	DeleteExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) error
 }
 
@@ -59,4 +60,14 @@ type ReceiptFolioService interface {
 // ReportService is the driving port for report use cases.
 type ReportService interface {
 	GetMonthlyBalance(ctx context.Context, year int) (*report.MonthlyBalanceReport, error)
+}
+
+// ExpenseCategoryService is the driving port for expense category use cases.
+type ExpenseCategoryService interface {
+	CreateCategory(ctx context.Context, callerID int64, name, description string) (*ec.ExpenseCategory, error)
+	GetCategory(ctx context.Context, id int64) (*ec.ExpenseCategory, error)
+	ListCategories(ctx context.Context) ([]ec.ExpenseCategory, error)
+	ListActiveCategories(ctx context.Context) ([]ec.ExpenseCategory, error)
+	UpdateCategory(ctx context.Context, id int64, name, description string, isActive bool) (*ec.ExpenseCategory, error)
+	DeleteCategory(ctx context.Context, id int64) error
 }
