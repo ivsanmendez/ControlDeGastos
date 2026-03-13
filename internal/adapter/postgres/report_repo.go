@@ -19,11 +19,11 @@ func NewReportRepo(db *sql.DB) *ReportRepo {
 
 func (r *ReportRepo) AggregateIncomeByMonth(ctx context.Context, year int) ([]report.MonthAggregate, error) {
 	const q = `
-		SELECT month, COALESCE(SUM(amount), 0)
+		SELECT EXTRACT(MONTH FROM payment_date)::int, COALESCE(SUM(amount), 0)
 		FROM contributions
-		WHERE year = $1
-		GROUP BY month
-		ORDER BY month`
+		WHERE EXTRACT(YEAR FROM payment_date)::int = $1
+		GROUP BY EXTRACT(MONTH FROM payment_date)
+		ORDER BY EXTRACT(MONTH FROM payment_date)`
 
 	return r.scanAggregates(ctx, q, year)
 }

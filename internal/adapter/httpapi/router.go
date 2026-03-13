@@ -44,6 +44,10 @@ func RegisterRoutes(mux *http.ServeMux, expenseSvc port.ExpenseService, authSvc 
 		http.HandlerFunc(expH.GetByID),
 		auth, RequirePermission(user.PermExpenseReadOwn, tr),
 	))
+	mux.Handle("PUT /expenses/{id}", Chain(
+		http.HandlerFunc(expH.Update),
+		auth, RequirePermission(user.PermExpenseUpdateOwn, tr),
+	))
 	mux.Handle("DELETE /expenses/{id}", Chain(
 		http.HandlerFunc(expH.Delete),
 		auth, RequirePermission(user.PermExpenseDeleteOwn, tr),
@@ -127,6 +131,10 @@ func RegisterRoutes(mux *http.ServeMux, expenseSvc port.ExpenseService, authSvc 
 	mux.Handle("GET /contributions/{id}", Chain(
 		http.HandlerFunc(contribH.GetByID),
 		auth, RequirePermission(user.PermContributionRead, tr),
+	))
+	mux.Handle("PUT /contributions/{id}", Chain(
+		http.HandlerFunc(contribH.Update),
+		auth, RequirePermission(user.PermContributionUpdate, tr),
 	))
 	mux.Handle("DELETE /contributions/{id}", Chain(
 		http.HandlerFunc(contribH.Delete),

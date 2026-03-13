@@ -119,6 +119,59 @@ func (h *ContributionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, c)
 }
 
+type updateContributionRequest struct {
+	ContributorID int64                      `json:"contributor_id"`
+	CategoryID    int64                      `json:"category_id"`
+	Amount        float64                    `json:"amount"`
+	Month         int                        `json:"month"`
+	Year          int                        `json:"year"`
+	PaymentDate   string                     `json:"payment_date"`
+	PaymentMethod contribution.PaymentMethod `json:"payment_method"`
+}
+
+func (h *ContributionHandler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_id")
+		return
+	}
+
+	var req updateContributionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_request_body")
+		return
+	}
+
+	paymentDate, err := time.Parse("2006-01-02", req.PaymentDate)
+	if err != nil {
+		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_payment_date_format")
+		return
+	}
+
+	c, err := h.svc.UpdateContribution(
+		r.Context(),
+		id,
+		req.ContributorID,
+		req.CategoryID,
+		req.Amount,
+		req.Month,
+		req.Year,
+		paymentDate,
+		req.PaymentMethod,
+	)
+	if err != nil {
+		if errors.Is(err, contribution.ErrNotFound) {
+			writeErrorT(w, r, h.tr, http.StatusNotFound, "contribution_not_found")
+		} else if errors.Is(err, contribution.ErrDuplicate) {
+			writeError(w, http.StatusConflict, err.Error())
+		} else {
+			writeError(w, http.StatusUnprocessableEntity, err.Error())
+		}
+		return
+	}
+	writeJSON(w, http.StatusOK, c)
+}
+
 func (h *ContributionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {

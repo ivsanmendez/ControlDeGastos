@@ -10,6 +10,7 @@ import (
 // Repository is the outbound port for expense persistence.
 type Repository interface {
 	Save(ctx context.Context, e *Expense) error
+	Update(ctx context.Context, e *Expense) error
 	FindByID(ctx context.Context, id int64) (*Expense, error)
 	FindAll(ctx context.Context) ([]Expense, error)
 	FindAllByUser(ctx context.Context, userID int64) ([]Expense, error)
@@ -65,6 +66,42 @@ func (s *Service) ListExpenses(ctx context.Context, callerID int64, callerRole u
 		return s.repo.FindAllDetailed(ctx)
 	}
 	return s.repo.FindAllDetailedByUser(ctx, callerID)
+}
+
+func (s *Service) UpdateExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64, description string, amount float64, categoryID int64, date time.Time) (*Expense, error) {
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if callerRole != user.RoleAdmin && existing.UserID != callerID {
+		return nil, ErrForbidden
+	}
+
+	if description == "" {
+		return nil, ErrEmptyDescription
+	}
+	if amount <= 0 {
+		return nil, ErrInvalidAmount
+	}
+	if categoryID <= 0 {
+		return nil, ErrInvalidCategoryID
+	}
+
+	existing.Description = description
+	existing.Amount = amount
+	existing.CategoryID = categoryID
+	existing.Date = date
+	existing.UpdatedAt = time.Now()
+
+	if err := s.repo.Update(ctx, existing); err != nil {
+		return nil, err
+	}
+	_ = s.events.Publish(ctx, Event{
+		Type:       EventUpdated,
+		Expense:    *existing,
+		OccurredAt: time.Now(),
+	})
+	return existing, nil
 }
 
 func (s *Service) DeleteExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) error {

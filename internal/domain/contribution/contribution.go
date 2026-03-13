@@ -44,6 +44,7 @@ type Contribution struct {
 	PaymentMethod PaymentMethod
 	UserID        int64
 	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 // ContributionDetail is a read-only DTO returned by JOIN queries,
@@ -89,6 +90,7 @@ func New(
 		return nil, ErrInvalidPaymentMethod
 	}
 
+	now := time.Now()
 	return &Contribution{
 		UserID:        userID,
 		ContributorID: contributorID,
@@ -98,6 +100,7 @@ func New(
 		Year:          year,
 		PaymentDate:   paymentDate,
 		PaymentMethod: paymentMethod,
-		CreatedAt:     time.Now(),
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}, nil
 }

@@ -35,6 +35,34 @@ func (r *ExpenseRepo) Save(ctx context.Context, e *expense.Expense) error {
 	).Scan(&e.ID)
 }
 
+func (r *ExpenseRepo) Update(ctx context.Context, e *expense.Expense) error {
+	const q = `
+		UPDATE expenses
+		SET description = $1, amount = $2, category_id = $3, date = $4, updated_at = $5
+		WHERE id = $6`
+
+	result, err := r.db.ExecContext(ctx, q,
+		e.Description,
+		e.Amount,
+		e.CategoryID,
+		e.Date,
+		e.UpdatedAt,
+		e.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("update expense %d: %w", e.ID, err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("update expense %d: %w", e.ID, err)
+	}
+	if rows == 0 {
+		return expense.ErrNotFound
+	}
+	return nil
+}
+
 func (r *ExpenseRepo) FindByID(ctx context.Context, id int64) (*expense.Expense, error) {
 	const q = `
 		SELECT id, user_id, description, amount, category_id, date, created_at, updated_at

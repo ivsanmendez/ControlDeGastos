@@ -32,6 +32,15 @@ func (r *fakeRepo) Save(_ context.Context, e *expense.Expense) error {
 	return nil
 }
 
+func (r *fakeRepo) Update(_ context.Context, e *expense.Expense) error {
+	if _, ok := r.data[e.ID]; !ok {
+		return expense.ErrNotFound
+	}
+	cp := *e
+	r.data[e.ID] = &cp
+	return nil
+}
+
 func (r *fakeRepo) FindByID(_ context.Context, id int64) (*expense.Expense, error) {
 	e, ok := r.data[id]
 	if !ok {

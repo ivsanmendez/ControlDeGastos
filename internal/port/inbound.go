@@ -20,6 +20,7 @@ type ExpenseService interface {
 	CreateExpense(ctx context.Context, callerID int64, description string, amount float64, categoryID int64, date time.Time) (*expense.Expense, error)
 	GetExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) (*expense.Expense, error)
 	ListExpenses(ctx context.Context, callerID int64, callerRole user.Role) ([]expense.ExpenseDetail, error)
+	UpdateExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64, description string, amount float64, categoryID int64, date time.Time) (*expense.Expense, error)
 	DeleteExpense(ctx context.Context, callerID int64, callerRole user.Role, id int64) error
 }
 
@@ -37,6 +38,7 @@ type ContributionService interface {
 	CreateContribution(ctx context.Context, callerID int64, contributorID int64, categoryID int64, amount float64, month, year int, paymentDate time.Time, paymentMethod contribution.PaymentMethod) (*contribution.Contribution, error)
 	GetContribution(ctx context.Context, id int64) (*contribution.ContributionDetail, error)
 	ListContributions(ctx context.Context, contributorID int64, year int) ([]contribution.ContributionDetail, error)
+	UpdateContribution(ctx context.Context, id int64, contributorID int64, categoryID int64, amount float64, month, year int, paymentDate time.Time, paymentMethod contribution.PaymentMethod) (*contribution.Contribution, error)
 	DeleteContribution(ctx context.Context, id int64) error
 }
 

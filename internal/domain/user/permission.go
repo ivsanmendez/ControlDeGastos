@@ -6,11 +6,14 @@ const (
 	PermExpenseCreate    Permission = "expense:create"
 	PermExpenseReadOwn   Permission = "expense:read:own"
 	PermExpenseReadAll   Permission = "expense:read:all"
+	PermExpenseUpdateOwn Permission = "expense:update:own"
+	PermExpenseUpdateAll Permission = "expense:update:all"
 	PermExpenseDeleteOwn Permission = "expense:delete:own"
 	PermExpenseDeleteAll Permission = "expense:delete:all"
 
 	PermContributionCreate Permission = "contribution:create"
 	PermContributionRead   Permission = "contribution:read"
+	PermContributionUpdate Permission = "contribution:update"
 	PermContributionDelete Permission = "contribution:delete"
 
 	PermContributorCreate Permission = "contributor:create"
@@ -37,9 +40,11 @@ var rolePermissions = map[Role][]Permission{
 	RoleUser: {
 		PermExpenseCreate,
 		PermExpenseReadOwn,
+		PermExpenseUpdateOwn,
 		PermExpenseDeleteOwn,
 		PermContributionCreate,
 		PermContributionRead,
+		PermContributionUpdate,
 		PermContributionDelete,
 		PermContributorCreate,
 		PermContributorRead,
@@ -60,10 +65,13 @@ var rolePermissions = map[Role][]Permission{
 		PermExpenseCreate,
 		PermExpenseReadOwn,
 		PermExpenseReadAll,
+		PermExpenseUpdateOwn,
+		PermExpenseUpdateAll,
 		PermExpenseDeleteOwn,
 		PermExpenseDeleteAll,
 		PermContributionCreate,
 		PermContributionRead,
+		PermContributionUpdate,
 		PermContributionDelete,
 		PermContributorCreate,
 		PermContributorRead,

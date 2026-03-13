@@ -83,6 +83,46 @@ func (h *ExpenseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, e)
 }
 
+type updateExpenseRequest struct {
+	Description string    `json:"description"`
+	Amount      float64   `json:"amount"`
+	CategoryID  int64     `json:"category_id"`
+	Date        time.Time `json:"date"`
+}
+
+func (h *ExpenseHandler) Update(w http.ResponseWriter, r *http.Request) {
+	claims, ok := ClaimsFromContext(r.Context())
+	if !ok {
+		writeErrorT(w, r, h.tr, http.StatusUnauthorized, "no_claims_in_context")
+		return
+	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_id")
+		return
+	}
+
+	var req updateExpenseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeErrorT(w, r, h.tr, http.StatusBadRequest, "invalid_request_body")
+		return
+	}
+
+	e, err := h.svc.UpdateExpense(r.Context(), claims.UserID, claims.Role, id, req.Description, req.Amount, req.CategoryID, req.Date)
+	if err != nil {
+		if errors.Is(err, expense.ErrForbidden) {
+			writeError(w, http.StatusForbidden, err.Error())
+		} else if errors.Is(err, expense.ErrNotFound) {
+			writeErrorT(w, r, h.tr, http.StatusNotFound, "expense_not_found")
+		} else {
+			writeError(w, http.StatusUnprocessableEntity, err.Error())
+		}
+		return
+	}
+	writeJSON(w, http.StatusOK, e)
+}
+
 func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	claims, ok := ClaimsFromContext(r.Context())
 	if !ok {
